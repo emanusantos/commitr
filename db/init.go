@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
@@ -11,22 +10,40 @@ import (
 func Init() {
 	dbName := os.Getenv("DATABASE_NAME")
 
-	fmt.Println(dbName)
-
 	db, err := sql.Open("sqlite3", "./"+dbName)
-
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	defer db.Close()
 
-	statement := `
-	create table if not exists foo (id integer not null primary key, name text);
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	createTables(db)
+}
+
+func createTables(db *sql.DB) {
+	createTables := `
+	create table if not exists user (
+    id uuid primary key, 
+    username text not null,
+    token text not null,
+    refresh_token text
+  );
+
+  create table if not exists repository (
+    id uuid not null primary key,
+    name text not null,
+    organization text not null,
+    user_id uuid not null,
+    foreign key (user_id) references user (id)
+  );
 	`
-	_, err = db.Exec(statement)
+
+	_, err := db.Exec(createTables)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	db.Close()
 }
