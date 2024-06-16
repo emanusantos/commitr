@@ -1,13 +1,18 @@
 package main
 
 import (
+	"commitr/db"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 )
 
 func main() {
+	godotenv.Load()
 	mux := http.NewServeMux()
+
+	db.Init()
 
 	mux.HandleFunc("/", index)
 
