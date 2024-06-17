@@ -8,6 +8,14 @@
   <body>
     <h1>CommiterX!</h1>
 
-    <button>login!</button>
+    {{ if .IsAuthenticated }}
+    <p>you are logged in! welcome good sir!</p>
+    {{else}}
+    <p>you are not logged in! log in now!</p>
+
+    <form method="post">
+      <button>login!</button>
+    </form>
+    {{end}}
   </body>
 </html>
