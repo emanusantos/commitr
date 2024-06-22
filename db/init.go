@@ -37,6 +37,10 @@ func createTables(db *sql.DB) {
     user_id uuid not null,
     foreign key (user_id) references user (id)
   );
+
+  create table if not exists session_state (
+    id uuid not null primary key
+  )
 	`
 
 	_, err := db.Exec(createTables)

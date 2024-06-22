@@ -2,15 +2,16 @@ package handlers
 
 import (
 	cookies "commitr/auth"
-	"fmt"
 	"html/template"
+	"log"
 	"net/http"
+	"strings"
 )
 
 func serveTemplate(writer http.ResponseWriter, request *http.Request) {
 	var isAuthenticated = false
 
-	_, err := cookies.ReadSigned(request, "session")
+	_, err := cookies.ReadSigned(request, "token")
 
 	if err == nil {
 		isAuthenticated = true
@@ -32,10 +33,36 @@ func HandleHome(writer http.ResponseWriter, request *http.Request) {
 
 	switch request.Method {
 	case http.MethodPost:
-		fmt.Println("TRIGGERED LOGIN REQUEST")
-		serveTemplate(writer, request)
+		password := request.FormValue("password")
+
+		log.Println(password)
+
+		if !strings.HasPrefix(password, "ghp_") {
+			http.Redirect(writer, request, "/", http.StatusSeeOther)
+			return
+		}
+
+		cookie := http.Cookie{
+			Name:  "token",
+			Value: password,
+		}
+
+		cookies.WriteSigned(writer, cookie)
+
+		http.Redirect(writer, request, "/", http.StatusSeeOther)
 
 	case http.MethodGet:
+		token, err := cookies.ReadSigned(request, "token")
+
+		if err != nil {
+			log.Println(err)
+
+			serveTemplate(writer, request)
+
+			return
+		}
+
+		log.Println(token)
 		serveTemplate(writer, request)
 
 	default:

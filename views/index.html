@@ -11,10 +11,13 @@
     {{ if .IsAuthenticated }}
     <p>you are logged in! welcome good sir!</p>
     {{else}}
+
     <p>you are not logged in! log in now!</p>
 
     <form method="post">
-      <button>login!</button>
+      <input name="password" type="password" />
+
+      <button type="submit">submit!</button>
     </form>
     {{end}}
   </body>
