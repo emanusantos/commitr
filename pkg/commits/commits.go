@@ -23,7 +23,17 @@ type PushEventPayloadCommit struct {
 	Url     string `json:"url"`
 }
 
-func FetchCommits(user, key string) []PushEvent {
+func filterCommits(commits []PushEvent) (filtered []PushEvent) {
+	for _, commit := range commits {
+		if commit.Type == "PushEvent" {
+			filtered = append(filtered, commit)
+		}
+	}
+
+	return
+}
+
+func fetchCommits(user, key string) []PushEvent {
 	client := &http.Client{}
 	endpoint := "https://api.github.com/users/" + user + "/events"
 
@@ -59,11 +69,13 @@ func FetchCommits(user, key string) []PushEvent {
 		return fallback
 	}
 
-	return commits
+	filtered := filterCommits(commits)
+
+	return filtered
 }
 
 func Retrieve(user, key string) []PushEvent {
-	commits := FetchCommits(user, key)
+	commits := fetchCommits(user, key)
 
 	return commits
 }

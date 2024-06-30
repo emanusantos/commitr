@@ -2,6 +2,9 @@ package handlers
 
 import (
 	cookies "commitr/auth"
+	"commitr/pkg/commits"
+	"commitr/pkg/user"
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,16 +12,37 @@ import (
 )
 
 func serveTemplate(writer http.ResponseWriter, request *http.Request) {
-	var isAuthenticated = false
+	var isAuthenticated = true
 
-	_, err := cookies.ReadSigned(request, "token")
+	token, err := cookies.ReadSigned(request, "token")
 
-	if err == nil {
-		isAuthenticated = true
+	if err != nil {
+		isAuthenticated = false
+
+		templ, _ := template.ParseFiles("views/index.html")
+		templ.Execute(writer, map[string]interface{}{
+			"IsAuthenticated": false,
+		})
+
+		return
 	}
+
+	userCookie, err := cookies.ReadSigned(request, "user")
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	var user user.UserInfo
+	err = json.Unmarshal([]byte(userCookie), &user)
+	commits := commits.Retrieve(user.Name, token)
+
+	log.Print(commits)
 
 	data := map[string]interface{}{
 		"IsAuthenticated": isAuthenticated,
+		"User":            user,
+		"Commits":         commits,
 	}
 
 	templ, _ := template.ParseFiles("views/index.html")
@@ -42,27 +66,35 @@ func HandleHome(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		cookie := http.Cookie{
-			Name:  "token",
-			Value: password,
+		user, err := user.GetInfo(password)
+
+		if err != nil {
+			http.Redirect(writer, request, "/", http.StatusSeeOther)
+			return
 		}
 
-		cookies.WriteSigned(writer, cookie)
+		output, err := json.Marshal(user)
+
+		log.Print(string(output))
+
+		if err != nil {
+			http.Redirect(writer, request, "/", http.StatusSeeOther)
+			return
+		}
+
+		cookies.WriteSigned(writer, http.Cookie{
+			Name:  "token",
+			Value: password,
+		})
+
+		cookies.WriteSigned(writer, http.Cookie{
+			Name:  "user",
+			Value: string(output),
+		})
 
 		http.Redirect(writer, request, "/", http.StatusSeeOther)
 
 	case http.MethodGet:
-		token, err := cookies.ReadSigned(request, "token")
-
-		if err != nil {
-			log.Println(err)
-
-			serveTemplate(writer, request)
-
-			return
-		}
-
-		log.Println(token)
 		serveTemplate(writer, request)
 
 	default:

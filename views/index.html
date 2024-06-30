@@ -9,7 +9,7 @@
     <h1>CommiterX!</h1>
 
     {{ if .IsAuthenticated }}
-    <p>you are logged in! welcome good sir!</p>
+    <p>you are logged in! welcome {{ .User.Name }}!</p>
     {{else}}
 
     <p>you are not logged in! log in now!</p>
