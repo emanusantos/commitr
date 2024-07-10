@@ -46,7 +46,7 @@ func fetchCommits(user, key string) []PushEvent {
 		return fallback
 	}
 
-	request.Header.Add("User-Agent", "emanusantos")
+	request.Header.Add("User-Agent", user)
 	request.Header.Add("Authorization", "Bearer"+" "+key)
 
 	response, err := client.Do(request)

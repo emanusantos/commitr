@@ -1,2 +1,2 @@
 dev:
-	@go run api/main.go
+	@go run main.go

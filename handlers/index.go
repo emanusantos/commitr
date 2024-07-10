@@ -35,9 +35,7 @@ func serveTemplate(writer http.ResponseWriter, request *http.Request) {
 
 	var user user.UserInfo
 	err = json.Unmarshal([]byte(userCookie), &user)
-	commits := commits.Retrieve(user.Name, token)
-
-	log.Print(commits)
+	commits := commits.Retrieve(user.Login, token)
 
 	data := map[string]interface{}{
 		"IsAuthenticated": isAuthenticated,
